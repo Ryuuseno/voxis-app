@@ -766,18 +766,19 @@
             body, html {
                 overflow-y: auto !important; 
                 overflow-x: hidden;
+                align-items: flex-start !important; /* MAGIA: Evita que el contenedor corte la parte superior */
             }
             
             .view-section {
                 height: auto !important;
                 min-height: 100vh;
-                padding-bottom: 50px;
+                padding-bottom: 80px; /* Más espacio abajo para la barra nativa del navegador */
             }
 
             /* Solo mandamos hacia arriba las pantallas largas que necesitan scroll */
             #view-cabina, #view-admin, #view-modos {
                 justify-content: flex-start !important;
-                padding-top: 20px;
+                padding-top: 50px !important; /* Un margen superior amplio para que el logo y botones respiren */
             }
 
             /* Obligamos a que la Bienvenida y el Login se queden en el centro */
