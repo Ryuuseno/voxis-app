@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOXIS - Habla sin Miedo</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==========================================================================
+           RESET Y ESTILOS GLOBALES
+           ========================================================================== */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #030008;
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            position: relative;
+        }
+
+        /* ==========================================================================
+           DECORACIÓN Y EFECTOS (BRILLOS Y FIGURAS) - TU TAMAÑO ORIGINAL
+           ========================================================================== */
+        .deco-izq { 
+            position: absolute; 
+            top: -5%; 
+            left: -2%; 
+            width: 300px; 
+            z-index: 2; 
+            animation: flotar 6s ease-in-out infinite; 
+        }
+
+        .deco-der { 
+            position: absolute; 
+            top: -5%; 
+            right: -2%; 
+            width: 250px; 
+            z-index: 2; 
+            animation: flotar 5s ease-in-out infinite alternate-reverse; 
+        }
+
+        @keyframes flotar { 
+            0% { transform: translateY(0px) rotate(0deg); } 
+            50% { transform: translateY(20px) rotate(5deg); } 
+            100% { transform: translateY(0px) rotate(0deg); } 
+        }
+        
+        .glow-left { 
+            position: absolute; 
+            top: -10%; 
+            left: -10%; 
+            width: 400px; 
+            height: 400px; 
+            background: radial-gradient(circle, rgba(84,36,187,0.45) 0%, rgba(0,0,0,0) 80%); 
+            filter: blur(60px); 
+            z-index: 1; 
+            pointer-events: none; 
+        }
+
+        .glow-right { 
+            position: absolute; 
+            top: -10%; 
+            right: -10%; 
+            width: 400px; 
+            height: 100vh; 
+            background: radial-gradient(ellipse at right, rgba(138,43,226,0.35) 0%, rgba(0,0,0,0) 70%); 
+            filter: blur(50px); 
+            z-index: 1; 
+            pointer-events: none; 
+        } 
+        
+        .bg-degradado { 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            height: 100%; 
+            width: 60%; 
+            background-image: url('/static/degradado_modos.png'); 
+            background-size: cover; 
+            background-repeat: no-repeat; 
+            z-index: 0; 
+            opacity: 0.9; 
+        }
+
+        /* ==========================================================================
+           GESTIÓN DE VISTAS Y PANTALLAS
+           ========================================================================== */
+        .view-section { 
+            position: relative; 
+            z-index: 10; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            width: 100%; 
+            transition: opacity 0.4s ease, transform 0.4s ease; 
+            height: 100vh; 
+            justify-content: center; 
+        }
+
+        .hidden { 
+            display: none !important; 
+            opacity: 0; 
+            transform: scale(0.95); 
+        }
+
+        /* ==========================================================================
+           COMPONENTES Y BOTONES GENERALES
+           ========================================================================== */
+        .btn-iniciar { 
+            background: linear-gradient(90deg, #000000 0%, #5424bb 100%); 
+            border: 1px solid #c59dff; 
+            border-radius: 50px; 
+            color: white; 
+            padding: 12px 35px; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            cursor: pointer; 
+            box-shadow: 0 0 20px rgba(84, 36, 187, 0.5); 
+            transition: all 0.3s ease; 
+            font-family: 'Montserrat', sans-serif; 
+            font-weight: 700; 
+            font-size: 1rem; 
+        }
+
+        .btn-iniciar:hover { 
+            transform: scale(1.05); 
+            box-shadow: 0 0 35px rgba(197, 157, 255, 0.7); 
+        }
+
+        .btn-secundario {
+            background: transparent;
+            border: 1px solid #c59dff;
+            border-radius: 50px;
+            color: #c59dff;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .btn-secundario:hover {
+            background: rgba(197, 157, 255, 0.1);
+            color: white;
+            box-shadow: 0 0 15px rgba(197, 157, 255, 0.3);
+        }
+
+        .btn-icon { 
+            background-color: #000000; 
+            color: #c59dff; 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-weight: bold; 
+        }
+
+        .admin-lock { 
+            position: absolute; 
+            right: 5%; 
+            top: 0; 
+            color: rgba(197, 157, 255, 0.4); 
+            cursor: pointer; 
+            font-size: 1.2rem; 
+            transition: color 0.3s; 
+            z-index: 100; 
+            padding: 15px; 
+        }
+
+        .admin-lock:hover { 
+            color: #c59dff; 
+            text-shadow: 0 0 10px #c59dff; 
+        }
+
+        /* ==========================================================================
+           PANTALLAS 1 Y 2 (BIENVENIDA Y LOGIN)
+           ========================================================================== */
+        .logo-img-main { 
+            width: 85vw; 
+            max-width: 800px; 
+            margin-bottom: 20px; 
+            filter: drop-shadow(0px 0px 15px rgba(84,36,187,0.3)); 
+        }
+
+        .main-title { 
+            font-size: clamp(3rem, 6vw, 5.5rem); 
+            font-weight: 500; 
+            text-align: center; 
+            line-height: 1.1; 
+            margin: 0 0 40px 0; 
+            letter-spacing: -1px; 
+        }
+
+        .purple-text { 
+            color: #c59dff; 
+            font-weight: 500; 
+        }
+        
+        .login-wrapper-container { 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            position: relative; 
+            text-align: center;
+        }
+
+        .logo-img-login { 
+            width: 85vw; 
+            max-width: 750px; 
+            margin-bottom: 50px; 
+            filter: drop-shadow(0px 0px 15px rgba(84,36,187,0.3)); 
+        }
+
+        .form-container { 
+            width: 90%; 
+            max-width: 550px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 25px; 
+            align-items: center; 
+        }
+
+        .input-wrapper { 
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+            height: 55px; 
+            border-radius: 50px; 
+            border: 1px solid #5424bb; 
+            background: linear-gradient(90deg, rgba(84, 36, 187, 0.4) 0%, #000000 85%); 
+            padding: 0 25px; 
+            box-sizing: border-box; 
+        }
+
+        .input-label { 
+            font-weight: 700; 
+            font-size: 1rem; 
+            color: #c59dff; 
+            margin-right: 15px; 
+        }
+
+        .input-wrapper input { 
+            background: transparent; 
+            border: none; 
+            color: white; 
+            font-family: 'Montserrat', sans-serif; 
+            font-size: 1rem; 
+            flex-grow: 1; 
+            outline: none; 
+        }
+
+        .input-wrapper input::placeholder { 
+            color: rgba(197, 157, 255, 0.15); 
+        }
+
+        /* ==========================================================================
+           PANTALLA 3: SELECCIÓN DE MODOS
+           ========================================================================== */
+        .modos-container { 
+            display: flex; 
+            width: 90%; 
+            max-width: 1200px; 
+            align-items: center; 
+            justify-content: space-between; 
+        }
+
+        .modos-left { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            padding-right: 20px; 
+            z-index: 2; 
+        }
+
+        .logo-img-modos { 
+            width: 100%; 
+            max-width: 500px; 
+            margin-bottom: 20px; 
+            filter: drop-shadow(0px 0px 15px rgba(84,36,187,0.3)); 
+        }
+
+        .modos-right { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 2; 
+        }
+
+        .modos-title-desktop { 
+            font-size: 3.5rem; 
+            font-weight: 800; 
+            letter-spacing: 2px; 
+            margin-bottom: 30px; 
+        }
+
+        .modos-list { 
+            width: 80%; 
+            max-width: 450px; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        .modo-item { 
+            color: white; 
+            font-family: 'Montserrat', sans-serif; 
+            font-weight: 700; 
+            font-size: 1.1rem; 
+            padding: 20px 0; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4); 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            text-align: center; 
+            background: transparent; 
+            border-top: none; 
+            border-left: none; 
+            border-right: none; 
+            outline: none; 
+        }
+
+        .modo-item:first-child { 
+            border-top: 1px solid rgba(255, 255, 255, 0.4); 
+        }
+
+        .modo-item:hover { 
+            color: #c59dff; 
+            background: rgba(197, 157, 255, 0.1); 
+            transform: scale(1.02); 
+        }
+
+        .flecha-oculta { 
+            display: none; 
+            font-size: 1.5rem; 
+            margin-left: 15px; 
+            transition: transform 0.3s; 
+        }
+
+        .flecha-oculta.girar { 
+            transform: rotate(180deg); 
+        }
+
+        /* ==========================================================================
+           PANTALLA 5: CABINA DE PRÁCTICA Y CONTROLES DE AUDIO
+           ========================================================================== */
+        .cabina-container { 
+            width: 95%; 
+            max-width: 1300px; 
+            display: flex; 
+            flex-direction: column; 
+            height: 95vh; 
+            gap: 15px; 
+        }
+
+        .cabina-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 5px; 
+        }
+
+        .cabina-grid { 
+            display: flex; 
+            gap: 20px; 
+            flex: 1; 
+            min-height: 0; 
+        }
+
+        .cabina-col { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+        }
+        
+        .cabina-panel { 
+            border: 2px solid #5424bb; 
+            border-radius: 20px; 
+            background-color: rgba(0,0,0,0.8); 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+
+        .panel-tab { 
+            background-color: #5424bb; 
+            color: white; 
+            padding: 5px 20px; 
+            font-weight: bold; 
+            font-size: 0.9rem; 
+            border-radius: 0 0 15px 0; 
+            align-self: flex-start; 
+        }
+
+        .cabina-panel-content { 
+            padding: 15px; 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            -webkit-overflow-scrolling: touch; 
+            overscroll-behavior-y: contain; 
+        }
+        
+        /* Controles de Micrófono y Grabación */
+        .mic-selector { 
+            background: rgba(84, 36, 187, 0.2); 
+            border: 1px solid #5424bb; 
+            color: white; 
+            padding: 10px; 
+            border-radius: 10px; 
+            font-family: 'Montserrat', sans-serif; 
+            width: 100%; 
+            outline: none; 
+            margin-bottom: 20px; 
+        }
+        
+        .btn-circulo-grabar { 
+            background: #5424bb; 
+            border: none; 
+            border-radius: 50%; 
+            width: 90px; 
+            height: 90px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 3rem; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 0 20px rgba(84,36,187,0.5); 
+            margin: 0 auto; 
+            color: white; 
+        }
+
+        .btn-circulo-grabar:hover { 
+            transform: scale(1.05); 
+            background: #723ce3; 
+        }
+        
+        .grabando { 
+            background: #ff3b3b !important; 
+            box-shadow: 0 0 30px rgba(255, 59, 59, 0.7) !important; 
+            animation: latido 1.5s infinite !important; 
+        }
+
+        @keyframes latido { 
+            0% { transform: scale(1); } 
+            50% { transform: scale(1.1); } 
+            100% { transform: scale(1); } 
+        }
+        
+        /* ONDAS DINÁMICAS */
+        .ondas-contenedor { 
+            display: none; 
+            gap: 5px; 
+            height: 40px; 
+            align-items: center; 
+            justify-content: center; 
+            margin-top: 20px; 
+        }
+
+        .onda { 
+            width: 8px; 
+            background-color: #c59dff; 
+            border-radius: 5px; 
+            height: 5px; 
+            transition: height 0.05s ease; 
+        }
+
+        /* Controles para escuchar/eliminar audio */
+        .controles-preview { 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px; 
+            margin-top: 10px; 
+        }
+
+        .audio-player-custom { 
+            border-radius: 30px; 
+            height: 40px; 
+            outline: none; 
+            width: 100%; 
+            max-width: 300px; 
+        }
+
+        .btn-eliminar-audio { 
+            background-color: transparent; 
+            border: 1px solid #ff3b3b; 
+            color: #ff3b3b; 
+            padding: 8px 20px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-family: 'Montserrat'; 
+            transition: 0.3s; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+
+        .btn-eliminar-audio:hover { 
+            background-color: rgba(255, 59, 59, 0.2); 
+        }
+
+        .btn-enviar-ia { 
+            background-color: #5424bb; 
+            color: white; 
+            border: none; 
+            border-radius: 15px; 
+            padding: 15px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            font-family: 'Montserrat', sans-serif; 
+            font-size: 1.1rem; 
+            opacity: 0.5; 
+            pointer-events: none; 
+        }
+
+        .btn-enviar-ia.activo { 
+            opacity: 1; 
+            pointer-events: auto; 
+        }
+
+        .btn-enviar-ia.activo:hover { 
+            background-color: #723ce3; 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(84,36,187,0.5); 
+        }
+        
+        /* Historial y Chat */
+        .cabina-historial { 
+            border: 2px solid #5424bb; 
+            border-radius: 20px; 
+            background-color: rgba(0,0,0,0.8); 
+            display: flex; 
+            flex-direction: column; 
+            height: 30vh; 
+            margin-top: 5px; 
+        }
+
+        .historial-tab { 
+            background-color: #5424bb; 
+            color: white; 
+            padding: 8px 20px; 
+            font-weight: bold; 
+            font-size: 1rem; 
+            border-radius: 15px 15px 0 0; 
+            text-align: center; 
+        }
+        
+        .msg-row-cabina { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 25px; 
+            border-radius: 15px; 
+            margin-bottom: 10px; 
+        }
+
+        .msg-user-cabina { 
+            background-color: #9254ff; 
+            color: white; 
+        }
+
+        .msg-tutor-cabina { 
+            background-color: #3b1191; 
+            color: white; 
+        }
+
+        .btn-descarga-mini { 
+            background: #000000; 
+            border-radius: 20px; 
+            padding: 5px 15px; 
+            color: white; 
+            font-size: 0.8rem; 
+            text-decoration: none; 
+            border: 1px solid #c59dff; 
+            transition: 0.3s; 
+            display: flex; 
+            gap: 8px; 
+            align-items: center;
+        }
+
+        .btn-descarga-mini:hover { 
+            background-color: #1a1a1a; 
+        }
+
+        /* ==========================================================================
+           PANTALLA 4: PANEL ADMIN
+           ========================================================================== */
+        .admin-header { 
+            width: 90%; 
+            max-width: 1100px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 30px; 
+        }
+
+        .admin-logo { 
+            width: 300px; 
+            filter: drop-shadow(0px 0px 15px rgba(84,36,187,0.3)); 
+        }
+
+        .admin-title { 
+            font-size: 2.2rem; 
+            font-weight: 800; 
+            color: white; 
+            margin: 0; 
+        }
+
+        .admin-controls { 
+            width: 90%; 
+            max-width: 1100px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+        }
+
+        #admin-student-select { 
+            width: 50%; 
+            min-width: 300px; 
+            background-color: #5424bb; 
+            color: white; 
+            font-family: 'Montserrat', sans-serif; 
+            font-size: 1.3rem; 
+            font-weight: 700; 
+            padding: 15px 30px; 
+            border: none; 
+            border-radius: 50px; 
+            outline: none; 
+            cursor: pointer; 
+            appearance: none; 
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22white%22%3E%3Cpath%20d%3D%22M7%2010l5%205%205-5z%22%2F%3E%3C%2Fsvg%3E"); 
+            background-repeat: no-repeat; 
+            background-position: right 20px center; 
+            background-size: 40px; 
+        }
+
+        .admin-chat-container { 
+            width: 90%; 
+            max-width: 1100px; 
+            border: 3px solid #5424bb; 
+            border-radius: 25px; 
+            background-color: #000000; 
+            display: flex; 
+            flex-direction: column; 
+            height: 55vh; 
+        }
+
+        .admin-chat-header { 
+            background-color: #5424bb; 
+            color: white; 
+            font-weight: 700; 
+            font-size: 1.2rem; 
+            text-align: center; 
+            padding: 15px; 
+            border-top-left-radius: 20px; 
+            border-top-right-radius: 20px; 
+        }
+
+        .admin-chat-body { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            -webkit-overflow-scrolling: touch; 
+            overscroll-behavior-y: contain; 
+        }
+
+        .admin-msg-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 25px; 
+            border-radius: 50px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+
+        .admin-msg-user { 
+            background-color: #9254ff; 
+            color: white; 
+        } 
+
+        .admin-msg-tutor { 
+            background-color: #3b1191; 
+            color: white; 
+        } 
+
+        .admin-msg-text { 
+            font-weight: 700; 
+            font-size: 1rem; 
+            flex-grow: 1; 
+            text-align: left; 
+            margin: 0; 
+            padding-right: 20px; 
+        }
+
+        .btn-descargar { 
+            background-color: #000000; 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 30px; 
+            font-family: 'Montserrat', sans-serif; 
+            font-weight: 700; 
+            font-size: 0.9rem; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            text-decoration: none; 
+            box-shadow: inset 0 0 5px rgba(255,255,255,0.2); 
+            transition: 0.3s; 
+        }
+
+        .btn-descargar:hover { 
+            background-color: #1a1a1a; 
+            transform: scale(1.05); 
+        }
+
+        .icon-dl { 
+            font-size: 1.1rem; 
+        }
+
+        .admin-chat-body::-webkit-scrollbar { 
+            width: 10px; 
+        }
+
+        .admin-chat-body::-webkit-scrollbar-track { 
+            background: #000000; 
+        }
+
+        .admin-chat-body::-webkit-scrollbar-thumb { 
+            background: #5424bb; 
+            border-radius: 10px; 
+        }
+
+        /* ==========================================
+           CORRECCIÓN DE INTERFAZ PARA CELULARES
+           ========================================== */
+        @media (max-width: 768px) {
+            /* --- INICIO DEL DESBLOQUEO DE PANTALLA --- */
+            body, html {
+                overflow-y: auto !important; 
+                overflow-x: hidden;
+            }
+            
+            .view-section {
+                height: auto !important;
+                min-height: 100vh;
+                padding-bottom: 50px;
+            }
+
+            /* Solo mandamos hacia arriba las pantallas largas que necesitan scroll */
+            #view-cabina, #view-admin, #view-modos {
+                justify-content: flex-start !important;
+                padding-top: 20px;
+            }
+
+            /* Obligamos a que la Bienvenida y el Login se queden en el centro */
+            #view-welcome, #view-login {
+                justify-content: center !important;
+                padding-top: 0 !important;
+            }
+
+            /* --- TU TAMAÑO ORIGINAL PARA CELULARES --- */
+            .deco-izq { width: 120px; top: -2%; left: -5%; }
+            .deco-der { width: 100px; top: -2%; right: -5%; }
+            
+            .btn-iniciar { font-size: 0.85rem; }
+            .admin-lock { right: 8%; }
+            
+            .modos-container { flex-direction: column; justify-content: center; height: auto; padding-top: 30px; }
+            .modos-left { padding-right: 0; margin-bottom: 20px; }
+            
+            .modos-title-desktop { display: none; } 
+            #btn-toggle-modos { cursor: pointer; background: rgba(84, 36, 187, 0.2); border: 1px solid #c59dff; border-radius: 30px; padding: 10px 40px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 10px; box-shadow: 0 0 15px rgba(84, 36, 187, 0.3); font-weight: 800; }
+            .flecha-oculta { display: inline-block; } 
+            
+            #lista-modos-desplegable { display: none; width: 90%; background: rgba(0, 0, 0, 0.9); border: 1px solid #5424bb; border-radius: 20px; padding: 10px; }
+            #lista-modos-desplegable.mostrar { display: flex; }
+            
+            .modo-item { font-size: 1rem; padding: 15px 5px; border-bottom: 1px solid rgba(84, 36, 187, 0.5); border-top: none; }
+            .modo-item:last-child { border-bottom: none; }
+            
+            .cabina-container { height: auto; padding-bottom: 20px; }
+            .cabina-grid { flex-direction: column; gap: 20px; }
+            .cabina-header { flex-direction: column; gap: 10px; text-align: center; }
+
+            .admin-header { flex-direction: column; gap: 15px; text-align: center; }
+            .admin-title { font-size: 1.5rem; }
+            .admin-controls { flex-direction: column; gap: 15px; }
+            #admin-student-select { width: 100%; }
+
+            /* ==========================================
+               ESTA ES LA MAGIA QUE ARREGLA EL CHAT Y EL MICRÓFONO EN MÓVIL
+               ========================================== */
+            .cabina-col, .cabina-panel {
+                flex: none !important; 
+            }
+            #cabina-chat-vivo, #cabina-historial-completo {
+                height: 250px !important; 
+            }
+        }
+
+        @media (min-width: 769px) {
+            #btn-toggle-modos { display: none; }
+            #lista-modos-desplegable { display: flex !important; } 
+        }
+    </style>
+</head>
+<body>
+
+    <img src="/static/figura_izq.png" class="deco-izq" onerror="this.style.display='none'">
+    <img src="/static/figura_der.png" class="deco-der" onerror="this.style.display='none'">
+    <div class="glow-left"></div>
+    <div class="glow-right"></div>
+    <div class="bg-degradado"></div>
+
+    <div class="view-section" id="view-welcome">
+        <img src="/static/logo.png" class="logo-img-main">
+        <h1 class="main-title">Habla sin <br><span class="purple-text">Miedo</span></h1>
+        <button class="btn-iniciar" onclick="mostrarLogin()">INICIA SESION <span class="btn-icon">↓</span></button>
+    </div>
+
+    <div class="view-section hidden" id="view-login">
+        <div class="login-wrapper-container">
+            <span class="admin-lock" onclick="mostrarAdmin()" title="Acceso a Profesores">🔒</span>
+            <img src="/static/logo.png" class="logo-img-login">
+            <div class="form-container">
+                <div class="input-wrapper">
+                    <span class="input-label">Nombre:</span>
+                    <input type="text" id="in-nombre" placeholder="Ej. Brandon">
+                </div>
+                <div class="input-wrapper">
+                    <span class="input-label">Carrera:</span>
+                    <input type="text" id="in-carrera" placeholder="Ej. Ingeniería en Sistemas">
+                </div>
+                <br>
+                <button class="btn-iniciar" onclick="validarYMostrarModos()">INICIA SESION <span class="btn-icon">→</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="view-section hidden" id="view-modos">
+        <div class="modos-container">
+            <div class="modos-left">
+                <img src="/static/logo.png" alt="VOXIS Logo" class="logo-img-modos">
+                <h1 class="main-title" style="font-size: clamp(2.5rem, 5vw, 4.5rem); margin: 0;">Habla sin <br><span class="purple-text">Miedo</span></h1>
+            </div>
+
+            <div class="modos-right">
+                <h2 class="modos-title-desktop">MODOS</h2>
+                <div id="btn-toggle-modos" onclick="toggleModos()">MODOS <span id="icono-flecha" class="flecha-oculta">▼</span></div>
+                
+                <div class="modos-list" id="lista-modos-desplegable">
+                    <button class="modo-item" onclick="seleccionarModo('Simulador de Vocabulario Técnico')">Simulador de Vocabulario Técnico</button>
+                    <button class="modo-item" onclick="seleccionarModo('Entrenador de Oratoria')">Entrenador de Oratoria</button>
+                    <button class="modo-item" onclick="seleccionarModo('Charla Casual')">Charla Casual</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="view-section hidden" id="view-cabina" style="justify-content: center;">
+        <div class="cabina-container">
+            
+            <div class="cabina-header">
+                <img src="/static/logo.png" style="width: 150px;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <h2 id="cabina-titulo-modo" style="font-size: 1.8rem; margin: 0; font-weight: 800;">Modo seleccionado</h2>
+                    <button id="btnVolver" class="btn-secundario" onclick="volverAModos()">⬅️ Cambiar de Modo</button>
+                </div>
+            </div>
+            
+            <div class="cabina-grid">
+                <div class="cabina-col" style="flex: 0.8;">
+                    <div class="cabina-panel" style="flex-grow: 1;">
+                        <div class="panel-tab">🎤 Tu Micrófono</div>
+                        <div class="cabina-panel-content">
+                            <select id="mic-select" class="mic-selector">
+                                <option value="">Detectando micrófonos...</option>
+                            </select>
+                            
+                            <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                
+                                <button id="btn-grabar" class="btn-circulo-grabar" onclick="toggleGrabacion()">🎙️</button>
+                                <div id="estado-grabacion" style="color: gray; margin-top: 15px; font-weight: bold; text-align: center;">Toca para grabar audio</div>
+                                
+                                <div id="ondas-visuales" class="ondas-contenedor">
+                                    <div class="onda" id="onda-1"></div>
+                                    <div class="onda" id="onda-2"></div>
+                                    <div class="onda" id="onda-3"></div>
+                                    <div class="onda" id="onda-4"></div>
+                                    <div class="onda" id="onda-5"></div>
+                                    <div class="onda" id="onda-6"></div>
+                                </div>
+
+                                <div id="controles-audio-previo" class="controles-preview">
+                                    <audio id="reproductor-audio" controls class="audio-player-custom"></audio>
+                                    <button class="btn-eliminar-audio" onclick="eliminarAudio()">🗑️ Eliminar y grabar de nuevo</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <button id="btn-enviar-final" class="btn-enviar-ia" onclick="enviarAudioIA()">Enviar a la IA</button>
+                </div>
+                
+                <div class="cabina-col" style="flex: 1.2;">
+                    <div class="cabina-panel" style="flex: 2;">
+                        <div class="panel-tab">Línea de conversación</div>
+                        <div class="cabina-panel-content" id="cabina-chat-vivo">
+                            <p style="margin:5px 0; color:gray; text-align:center; margin-top: 40px;">Aquí aparecerá la transcripción en vivo...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="cabina-panel" style="flex: 1;">
+                        <div class="panel-tab">Voz del tutor</div>
+                        <div class="cabina-panel-content" style="display:flex; justify-content:center; align-items:center;">
+                            <span style="font-size: 2.5rem; color: #5424bb;">🎵</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cabina-historial">
+                <div class="historial-tab">Línea de conversación (Historial Completo)</div>
+                <div class="cabina-panel-content" id="cabina-historial-completo" style="padding: 10px;">
+                    <p style="text-align:center; color:gray; margin-top: 30px;">Aquí aparecerá el historial de toda la sesión para que lo descargues.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="view-section hidden" id="view-admin">
+        <div class="admin-header">
+            <img src="/static/logo.png" alt="VOXIS Logo" class="admin-logo">
+            <h2 class="admin-title">Estas en el panel de maestros</h2>
+        </div>
+        <div class="admin-controls">
+            <select id="admin-student-select" onchange="cargarHistorial()">
+                <option value="">nombre de el estudiante</option>
+            </select>
+            <button class="btn-iniciar" style="padding: 5px 5px 5px 20px;" onclick="location.reload()">SALIR <span class="btn-icon" style="width: 30px; height: 30px;">✖</span></button>
+        </div>
+        <div class="admin-chat-container">
+            <div class="admin-chat-header" id="admin-chat-title">Línea de conversación (Selecciona un estudiante)</div>
+            <div class="admin-chat-body" id="admin-chat-body">
+                <p style="text-align:center; color:gray; margin-top: 50px;">Selecciona un estudiante para ver sus audios y transcripciones.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // VARIABLES GLOBALES
+        // ==========================================
+        let nombreUsuario = "";
+        let carreraUsuario = "";
+        let modoActual = "";
+
+        // ==========================================
+        // NAVEGACIÓN BÁSICA Y NUEVO BOTÓN VOLVER
+        // ==========================================
+        function mostrarLogin() { 
+            document.getElementById('view-welcome').classList.add('hidden'); 
+            setTimeout(() => { document.getElementById('view-login').classList.remove('hidden'); }, 100); 
+        }
+
+        function validarYMostrarModos() {
+            let n = document.getElementById('in-nombre').value;
+            let c = document.getElementById('in-carrera').value;
+            if (n.trim() === "" || c.trim() === "") return alert("⚠️ Por favor ingresa tu Nombre y tu Carrera.");
+            
+            nombreUsuario = n; 
+            carreraUsuario = c;
+            document.getElementById('view-login').classList.add('hidden');
+            setTimeout(() => { document.getElementById('view-modos').classList.remove('hidden'); }, 100);
+        }
+
+        function toggleModos() {
+            if (window.innerWidth <= 768) {
+                document.getElementById('lista-modos-desplegable').classList.toggle('mostrar');
+                document.getElementById('icono-flecha').classList.toggle('girar');
+            }
+        }
+
+        function volverAModos() {
+            document.getElementById('view-cabina').classList.add('hidden');
+            setTimeout(() => { document.getElementById('view-modos').classList.remove('hidden'); }, 100);
+        }
+
+        // ==========================================
+        // RESTAURACIÓN DE MEMORIA SEPARADA POR MODO
+        // ==========================================
+        async function recuperarHistorialCabina(nombre, modo) {
+            let modoLimpio = modo.trim().toLowerCase().replace(/ /g, "_").replace(/é/g, "e");
+            let nombreLimpio = nombre.trim().toLowerCase().replace(/ /g, "_");
+            let archivoId = `${nombreLimpio}_${modoLimpio}`;
+            
+            try {
+                let res = await fetch(`/api/admin/historial/${archivoId}`);
+                let data = await res.json();
+                
+                let chatVivo = document.getElementById('cabina-chat-vivo');
+                let historialCompleto = document.getElementById('cabina-historial-completo');
+                
+                if(data.historial && data.historial.length > 0) {
+                    chatVivo.innerHTML = '';
+                    historialCompleto.innerHTML = '';
+
+                    data.historial.forEach(msg => {
+                        if (msg.role === "system") return;
+
+                        let esUser = msg.role === 'user';
+                        let nombreMostrado = esUser ? "🗣️ TÚ:" : "🤖 TUTOR MULTILINGÜE:";
+                        let claseUser = esUser ? "msg-user-cabina" : "msg-tutor-cabina";
+                        let colorNombre = esUser ? "white" : "#c59dff";
+
+                        chatVivo.innerHTML += `
+                            <p style="margin:10px 0; color:${colorNombre}; font-weight:${esUser?500:700};">
+                                <strong>${nombreMostrado}</strong> <span style="font-weight:500; color:white;">${msg.content}</span>
+                            </p>
+                            ${esUser ? '' : '<hr style="border-color: #5424bb; opacity: 0.3;">'}
+                        `;
+
+                        let safeAudioUrl = msg.audio ? `/audios/${msg.audio.split('/').pop()}` : '#';
+                        let filename = safeAudioUrl !== '#' ? safeAudioUrl.split('/').pop() : 'audio.mp3';
+                        let btnHtml = safeAudioUrl !== '#' ? `<a href="${safeAudioUrl}" download="${filename}" class="btn-descarga-mini">⬇ Descargar</a>` : '';
+
+                        historialCompleto.insertAdjacentHTML('beforeend', `
+                            <div class="msg-row-cabina ${claseUser}">
+                                <div style="flex-grow:1;">
+                                    <p style="margin:0; font-weight: 700; font-size: 0.9rem;">${nombreMostrado}</p>
+                                    <p style="margin:5px 0 0 0; font-weight: 400;">${msg.content}</p>
+                                </div>
+                                ${btnHtml}
+                            </div>
+                        `);
+                    });
+                    
+                    chatVivo.scrollTop = chatVivo.scrollHeight;
+                    historialCompleto.scrollTop = historialCompleto.scrollHeight;
+                }
+            } catch(e) {
+                console.log("Historial previo no encontrado o es la primera vez que entra.");
+            }
+        }
+
+        // ==========================================
+        // SELECCIÓN DE MODO Y ARRANQUE DE CABINA
+        // ==========================================
+        async function seleccionarModo(modo) {
+            modoActual = modo;
+
+            let fd = new FormData();
+            fd.append('nombre', nombreUsuario); 
+            fd.append('carrera', carreraUsuario); 
+            fd.append('modo', modo);
+            
+            try {
+                let res = await fetch('/api/iniciar', { method: 'POST', body: fd });
+                let data = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('cabina-titulo-modo').innerText = modo;
+                    document.getElementById('view-modos').classList.add('hidden');
+                    setTimeout(() => { document.getElementById('view-cabina').classList.remove('hidden'); }, 100);
+                    cargarMicrofonos();
+
+                    let tutorAudioPanel = document.querySelector('.cabina-col:nth-child(2) .cabina-panel:nth-child(2) .cabina-panel-content');
+                    tutorAudioPanel.innerHTML = `<audio controls autoplay src="${data.audio_url}" style="width: 100%; max-width: 300px; border-radius: 30px; outline: none;"></audio>`;
+                    
+                    // 1. Pausa táctica de medio segundo para que Python termine de guardar el JSON
+                    await new Promise(r => setTimeout(r, 500));
+                    await recuperarHistorialCabina(nombreUsuario, modoActual);
+
+                    let chatVivo = document.getElementById('cabina-chat-vivo');
+                    let historialCompleto = document.getElementById('cabina-historial-completo');
+
+                    if (chatVivo.innerHTML.includes("Aquí aparecerá")) chatVivo.innerHTML = '';
+                    if (historialCompleto.innerHTML.includes("Aquí aparecerá")) historialCompleto.innerHTML = '';
+
+                    // 2. SEGURO DE VIDA: Si después de la pausa el historial AÚN no trajo el saludo, lo inyectamos a la fuerza (sin duplicarlo)
+                    if (!chatVivo.innerHTML.includes(data.mensaje)) {
+                        chatVivo.innerHTML += `
+                            <p style="margin:10px 0; color:#c59dff; font-weight:700;">
+                                🤖 <strong>TUTOR MULTILINGÜE:</strong> <span style="font-weight:500; color:white;">${data.mensaje}</span>
+                            </p>
+                            <hr style="border-color: #5424bb; opacity: 0.3;">
+                        `;
+
+                        let safeAudioUrl = data.audio_url || '#';
+                        let filename = safeAudioUrl !== '#' ? safeAudioUrl.split('/').pop() : 'bienvenida.mp3';
+
+                        historialCompleto.insertAdjacentHTML('beforeend', `
+                            <div class="msg-row-cabina msg-tutor-cabina">
+                                <div style="flex-grow:1;">
+                                    <p style="margin:0; font-weight: 700; font-size: 0.9rem;">🤖 TUTOR MULTILINGÜE:</p>
+                                    <p style="margin:5px 0 0 0; font-weight: 400;">${data.mensaje}</p>
+                                </div>
+                                <a href="${safeAudioUrl}" download="${filename}" class="btn-descarga-mini">⬇ Descargar</a>
+                            </div>
+                        `);
+                    }
+
+                    chatVivo.scrollTop = chatVivo.scrollHeight;
+                    historialCompleto.scrollTop = historialCompleto.scrollHeight;
+
+                } else { alert("Error al conectar con el servidor."); }
+            } catch(e) { alert("No se pudo iniciar la sesión. Revisa la consola."); }
+        }
+
+        // ==========================================
+        // LÓGICA DE GRABACIÓN REAL (MIC MÓVIL BLINDADO)
+        // ==========================================
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob = null;
+        let isGrabando = false;
+        let audioContext, analyser, sourceNode, animationId;
+
+        async function cargarMicrofonos() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const micSelect = document.getElementById('mic-select');
+                micSelect.innerHTML = ''; 
+                
+                let count = 1;
+                devices.forEach(device => {
+                    if (device.kind === 'audioinput') {
+                        let opt = document.createElement('option');
+                        opt.value = device.deviceId;
+                        opt.text = device.label || `Micrófono ${count++}`;
+                        micSelect.appendChild(opt);
+                    }
+                });
+                stream.getTracks().forEach(track => track.stop());
+            } catch (err) {
+                document.getElementById('estado-grabacion').innerText = "Permiso de micrófono denegado";
+                document.getElementById('estado-grabacion').style.color = "red";
+            }
+        }
+
+        async function toggleGrabacion() {
+            let btn = document.getElementById('btn-grabar');
+            let estado = document.getElementById('estado-grabacion');
+            let ondas = document.getElementById('ondas-visuales');
+            let controlesAudio = document.getElementById('controles-audio-previo');
+            let reproductor = document.getElementById('reproductor-audio');
+            let btnEnviar = document.getElementById('btn-enviar-final');
+            
+            if(!isGrabando) {
+                try {
+                    let deviceId = document.getElementById('mic-select').value;
+                    
+                    // 1. DETECTAMOS SI ES CELULAR O COMPUTADORA
+                    let esCelular = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    
+                    // 2. APLICAMOS FILTROS SOLO SI ES CELULAR
+                    let constraints = { 
+                        audio: { 
+                            echoCancellation: esCelular, 
+                            noiseSuppression: esCelular, 
+                            autoGainControl: esCelular, 
+                            sampleRate: 48000, 
+                            channelCount: 1 
+                        } 
+                    };
+                    if (deviceId) constraints.audio.deviceId = { exact: deviceId };
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    let opcionesMedia = {};
+                    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                        opcionesMedia = { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 128000 };
+                    }
+                    
+                    mediaRecorder = new MediaRecorder(stream, opcionesMedia);
+                    audioChunks = [];
+
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 256; 
+                    sourceNode = audioContext.createMediaStreamSource(stream);
+                    sourceNode.connect(analyser);
+
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    const ondasDOM = document.querySelectorAll('.onda');
+
+                    function dibujarOndas() {
+                        if (!isGrabando) return;
+                        animationId = requestAnimationFrame(dibujarOndas);
+                        analyser.getByteFrequencyData(dataArray);
+                        let paso = Math.floor(bufferLength / ondasDOM.length);
+                        for (let i = 0; i < ondasDOM.length; i++) {
+                            ondasDOM[i].style.height = (5 + (dataArray[i * paso] / 255) * 40) + 'px';
+                        }
+                    }
+
+                    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+                    mediaRecorder.onstop = () => {
+                        cancelAnimationFrame(animationId);
+                        if (audioContext && audioContext.state !== 'closed') audioContext.close();
+                        stream.getTracks().forEach(track => track.stop());
+
+                        audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                        reproductor.src = URL.createObjectURL(audioBlob);
+                        reproductor.load(); 
+                        
+                        btn.style.display = "none";
+                        ondas.style.display = "none";
+                        controlesAudio.style.display = "flex";
+                        estado.innerText = "Audio capturado. Listo para enviar.";
+                        estado.style.color = "#c59dff";
+                        btnEnviar.classList.add('activo');
+                    };
+
+                    mediaRecorder.start(250); 
+                    isGrabando = true;
+                    btn.classList.add('grabando');
+                    estado.innerText = "Grabando... (Toca para detener)";
+                    estado.style.color = "#ff3b3b";
+                    ondas.style.display = "flex";
+                    dibujarOndas();
+
+                } catch(e) { alert("No se pudo acceder al micrófono."); }
+            } else {
+                isGrabando = false;
+                mediaRecorder.stop();
+                btn.classList.remove('grabando');
+            }
+        }
+
+        function eliminarAudio() {
+            audioBlob = null;
+            document.getElementById('reproductor-audio').src = "";
+            document.getElementById('controles-audio-previo').style.display = 'none';
+            document.getElementById('btn-grabar').style.display = "flex";
+            document.getElementById('estado-grabacion').innerText = "Toca para grabar audio";
+            document.getElementById('estado-grabacion').style.color = "gray";
+            document.getElementById('btn-enviar-final').classList.remove('activo');
+            document.querySelectorAll('.onda').forEach(o => o.style.height = '5px');
+        }
+
+        // ==========================================
+        // CONEXIÓN CON TU FASTAPI Y GROQ
+        // ==========================================
+        async function enviarAudioIA() {
+            if(!audioBlob) return alert("Por favor, graba un audio primero.");
+            
+            let btnEnviar = document.getElementById('btn-enviar-final');
+            let chatVivo = document.getElementById('cabina-chat-vivo');
+            let historialCompleto = document.getElementById('cabina-historial-completo');
+            let tutorAudioPanel = document.querySelector('.cabina-col:nth-child(2) .cabina-panel:nth-child(2) .cabina-panel-content');
+            
+            btnEnviar.innerText = "⏳ Procesando con Groq...";
+            btnEnviar.classList.remove('activo');
+            btnEnviar.style.pointerEvents = "none";
+            
+            chatVivo.innerHTML += `<p id="msg-carga" style="text-align:center; color:#c59dff; margin-top:10px;">Escuchando y analizando... 🤔</p>`;
+            chatVivo.scrollTop = chatVivo.scrollHeight;
+
+            let fd = new FormData();
+            fd.append('audio', audioBlob, 'grabacion_usuario.webm'); 
+            fd.append('nombre', nombreUsuario); 
+            fd.append('modo', modoActual);
+
+            try {
+                let res = await fetch('/api/chat', { method: 'POST', body: fd });
+                let data = await res.json();
+
+                let msgCarga = document.getElementById('msg-carga');
+                if(msgCarga) msgCarga.remove();
+
+                if (res.ok) {
+                    chatVivo.innerHTML += `
+                        <p style="margin:10px 0; color:white; font-weight:500;">🗣️ <strong>TÚ:</strong> ${data.texto_usuario}</p>
+                        <p style="margin:10px 0; color:#c59dff; font-weight:700;">🤖 <strong>TUTOR MULTILINGÜE:</strong> <span style="font-weight:500; color:white;">${data.texto_ia}</span></p>
+                        <hr style="border-color: #5424bb; opacity: 0.3;">
+                    `;
+                    chatVivo.scrollTop = chatVivo.scrollHeight;
+
+                    let safeUserUrl = data.audio_usuario_url || "#";
+                    let safeIaUrl = data.audio_ia_url || "#";
+                    let filenameUser = safeUserUrl !== "#" ? safeUserUrl.split('/').pop() : 'tu_audio.webm';
+                    let filenameIA = safeIaUrl !== "#" ? safeIaUrl.split('/').pop() : 'respuesta_tutor.mp3';
+                    
+                    if(historialCompleto.innerHTML.includes("Aquí aparecerá")) {
+                        historialCompleto.innerHTML = "";
+                    }
+
+                    historialCompleto.insertAdjacentHTML('beforeend', `
+                        <div class="msg-row-cabina msg-user-cabina">
+                            <div style="flex-grow:1;">
+                                <p style="margin:0; font-weight: 700; font-size: 0.9rem;">🗣️ TÚ:</p>
+                                <p style="margin:5px 0 0 0; font-weight: 400;">${data.texto_usuario}</p>
+                            </div>
+                            <a href="${safeUserUrl}" download="${filenameUser}" class="btn-descarga-mini">⬇ Descargar</a>
+                        </div>
+                        <div class="msg-row-cabina msg-tutor-cabina">
+                            <div style="flex-grow:1;">
+                                <p style="margin:0; font-weight: 700; font-size: 0.9rem;">🤖 TUTOR MULTILINGÜE:</p>
+                                <p style="margin:5px 0 0 0; font-weight: 400;">${data.texto_ia}</p>
+                            </div>
+                            <a href="${safeIaUrl}" download="${filenameIA}" class="btn-descarga-mini">⬇ Descargar</a>
+                        </div>
+                    `);
+                    historialCompleto.scrollTop = historialCompleto.scrollHeight;
+
+                    tutorAudioPanel.innerHTML = `<audio controls autoplay src="${safeIaUrl}" style="width: 100%; max-width: 300px; border-radius: 30px; outline: none;"></audio>`;
+                    eliminarAudio();
+                } else {
+                    alert("⚠️ Error del servidor: " + (data.error || "Desconocido"));
+                }
+            } catch(e) {
+                console.error(e);
+                alert("❌ No se pudo conectar con Python. Revisa la consola.");
+            } finally {
+                btnEnviar.innerText = "Enviar a la IA";
+                btnEnviar.style.pointerEvents = "auto";
+            }
+        }
+
+        // ==========================================
+        // LÓGICA PANEL ADMIN
+        // ==========================================
+        async function mostrarAdmin() {
+            let pass = prompt("🔐 Ingresa la contraseña de profesor:");
+            if (pass === "profesor123") {
+                document.getElementById('view-login').classList.add('hidden');
+                try {
+                    let res = await fetch("/api/admin/usuarios");
+                    let data = await res.json();
+                    let select = document.getElementById("admin-student-select");
+                    data.usuarios.forEach(user => { select.innerHTML += `<option value="${user}">${user}</option>`; });
+                } catch(e) { console.error("Error", e); }
+                setTimeout(() => { document.getElementById('view-admin').classList.remove('hidden'); }, 100);
+            }
+        }
+
+        async function cargarHistorial() {
+            let archivoId = document.getElementById("admin-student-select").value;
+            if (!archivoId) return;
+
+            let res = await fetch(`/api/admin/historial/${archivoId}`);
+            let data = await res.json();
+            let chatBody = document.getElementById("admin-chat-body");
+            chatBody.innerHTML = "";
+
+            data.historial.forEach(msg => {
+                if (msg.role === "system") return;
+
+                let icono = msg.role === "user" ? "🗣️ TÚ:" : "🤖 TUTOR MULTILINGÜE:";
+
+                let filename = msg.audio ? msg.audio.split('/').pop() : 'audio.mp3';
+                let rutaReal = msg.audio ? `/audios/${filename}` : '#';
+
+                let btn = msg.audio ? `<a href="${rutaReal}" download="${filename}" class="btn-descargar">⬇ Descargar</a>` : "";
+
+                chatBody.innerHTML += `
+                    <div class="admin-msg-row ${msg.role === 'user' ? 'admin-msg-user' : 'admin-msg-tutor'}">
+                        <div style="flex-grow:1;">
+                            <p style="margin:0; font-weight: 700; font-size: 0.9rem;">${icono}</p>
+                            <p style="margin:5px 0 0 0; font-weight: 400;">${msg.content}</p>
+                        </div>
+                        ${btn}
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
