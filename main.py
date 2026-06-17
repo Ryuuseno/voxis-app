@@ -193,6 +193,7 @@ async def procesar_chat(nombre: str = Form(...), modo: str = Form(...), audio: U
                 prompt="ehhh, mmmmm, ahhh, este, bueno, osea, mhm, uh, um, well, you know, euh, alors...", # <-- AHORA ES MULTILINGÜE
                 response_format="json"
             ).text
+        # ... [tu código donde Whisper transcribe el audio] ...
         else:
             transcripcion = cliente_groq.audio.transcriptions.create(
                 file=("audio.webm", open(ruta_audio_usuario, "rb")), 
@@ -200,6 +201,35 @@ async def procesar_chat(nombre: str = Form(...), modo: str = Form(...), audio: U
                 response_format="json"
             ).text
         # ==============================================================
+
+        # ==============================================================
+        # NUEVO: COMANDO SECRETO DE BORRADO DE DATOS
+        # ==============================================================
+        texto_limpio = transcripcion.lower().replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("!", "").replace(".", "").replace(",", "")
+        
+        if "cierrate sesamo" in texto_limpio or "cierra te sesamo" in texto_limpio:
+            # 1. Borrar el historial JSON (El cerebro de la conversación)
+            archivo_memoria = obtener_ruta_memoria(nombre, modo)
+            if os.path.exists(archivo_memoria):
+                os.remove(archivo_memoria)
+                
+            # 2. Borrar todos los audios guardados de este usuario en el servidor
+            for f in glob.glob(f"{CARPETA_AUDIOS}/{nombre_limpio}_*.*"):
+                try: os.remove(f)
+                except: pass
+                
+            # 3. Crear una respuesta de voz robótica de confirmación
+            msg_sistema = "Comando de seguridad reconocido. Todos tus datos y tu historial de conversación han sido eliminados del servidor. Hasta pronto."
+            ruta_audio_sistema = f"{CARPETA_AUDIOS}/{nombre_limpio}_{timestamp}_sistema.mp3"
+            await generar_audio(msg_sistema, "es", ruta_audio_sistema)
+            
+            return {
+                "texto_usuario": transcripcion,
+                "texto_ia": msg_sistema,
+                "audio_ia_url": f"/audios/{os.path.basename(ruta_audio_sistema)}",
+                "audio_usuario_url": f"/audios/{os.path.basename(ruta_audio_usuario)}",
+                "borrar_todo": True  # ¡Nuestra bandera secreta para avisarle al FrontEnd!
+            }
         # ==============================================================
 
         historial = cargar_memoria(nombre, modo)
