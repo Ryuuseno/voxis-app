@@ -1300,6 +1300,31 @@
                 if(msgCarga) msgCarga.remove();
 
                 if (res.ok) {
+                    // ==========================================
+                    // NUEVO: INTERCEPTOR DEL COMANDO SECRETO
+                    // ==========================================
+                    if (data.borrar_todo) {
+                        chatVivo.innerHTML += `
+                            <p style="margin:10px 0; color:white; font-weight:500;">🗣️ <strong>TÚ:</strong> ${data.texto_usuario}</p>
+                            <p style="margin:10px 0; color:#ff3b3b; font-weight:700;">🚨 <strong>SISTEMA:</strong> <span style="font-weight:500; color:white;">${data.texto_ia}</span></p>
+                            <hr style="border-color: #ff3b3b; opacity: 0.3;">
+                        `;
+                        chatVivo.scrollTop = chatVivo.scrollHeight;
+                        tutorAudioPanel.innerHTML = `<audio controls autoplay src="${data.audio_ia_url}" style="width: 100%; max-width: 300px; border-radius: 30px; outline: none;"></audio>`;
+                        
+                        eliminarAudio();
+                        
+                        // Esperamos 8 segundos para que el usuario escuche el audio y luego sacamos la escoba
+                        setTimeout(() => {
+                            alert("🔐 Protocolo de seguridad ejecutado. Serás redirigido al inicio.");
+                            location.reload(); // Recarga la página y borra todo de la pantalla
+                        }, 8000);
+                        
+                        return; // IMPORTANTE: Detenemos la función aquí para que no siga dibujando el chat normal
+                    }
+                    // ==========================================
+
+                    // TU CÓDIGO ORIGINAL CONTINÚA AQUÍ NORMALMENTE...
                     chatVivo.innerHTML += `
                         <p style="margin:10px 0; color:white; font-weight:500;">🗣️ <strong>TÚ:</strong> ${data.texto_usuario}</p>
                         <p style="margin:10px 0; color:#c59dff; font-weight:700;">🤖 <strong>TUTOR MULTILINGÜE:</strong> <span style="font-weight:500; color:white;">${data.texto_ia}</span></p>
@@ -1347,7 +1372,6 @@
                 btnEnviar.style.pointerEvents = "auto";
             }
         }
-
         // ==========================================
         // LÓGICA PANEL ADMIN
         // ==========================================
