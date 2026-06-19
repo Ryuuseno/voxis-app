@@ -22,7 +22,6 @@ app.add_middleware(
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-# AQUÍ ESTÁN TODOS TUS MOTORES NATIVOS LISTOS PARA TOMAR EL MICRÓFONO
 VOCES_TTS = {
     "en": "en-US-ChristopherNeural", 
     "es": "es-MX-JorgeNeural", 
@@ -61,9 +60,9 @@ def guardar_memoria(nombre, modo, historial):
 def generar_prompt_modo(nombre, carrera, modo):
     modo_limpio = modo.lower()
     
-    # =======================================================
-    # MODO 1: VOCABULARIO (Mantenemos tu prompt original intacto)
-    # =======================================================
+
+    # MODO 1: VOCABULARIO 
+
     if "vocabulario" in modo_limpio or "tecnico" in modo_limpio or "técnico" in modo_limpio:
         inst = (
             f"Eres el Tutor de VOXIS para la carrera de '{carrera}'.\n"
@@ -85,11 +84,11 @@ def generar_prompt_modo(nombre, carrera, modo):
         )
         # Retorno normal para Vocabulario
         return f"{inst}\n\nEJEMPLO JSON OBLIGATORIO:\n{fmt}"
-    # =======================================================
-    # MODO 2: ORATORIA (Corrección Profunda de Gramática y Spanglish)
-    # =======================================================
+
+    # MODO 2: ORATORIA
+
     elif "oratoria" in modo_limpio:
-       inst = (
+        inst = (
             f"Eres el Entrenador estricto pero amable de Oratoria de VOXIS para alumnos de {carrera}.\n"
             "Misión:\n"
             "1. Pregunta el tema de la exposición y si está listo para empezar.\n"
@@ -112,17 +111,16 @@ def generar_prompt_modo(nombre, carrera, modo):
             '}'
         )
         return f"{inst}\n\nFORMATO JSON OBLIGATORIO:\n{fmt}"
-   # =======================================================
-    # MODO 3: CHARLA CASUAL (Multi-idioma y Traductor Amigable)
-    # =======================================================
+
     else: 
         inst = (
             f"Eres un compañero y amigo de intercambio en VOXIS para alumnos de {carrera}.\n"
             "Misión:\n"
             "1. Mantén una plática casual, relajada y amigable en el idioma que el usuario decida platicar.\n"
-            "2. Sé un apoyo: Si el usuario se traba o te pregunta en español cómo se dice algo en otro idioma, respóndele amablemente explicándole en español y dándole la traducción exacta en el idioma que están practicando.\n"
-            "REGLA DE AUDIO (VITAL): Tu cerebro debe separar los idiomas. Si hablas en español, usa el código 'es'. Si hablas, traduces o pronuncias algo en otro idioma, usa OBLIGATORIAMENTE un bloque separado con su código respectivo (ej. 'en' para inglés, 'fr' para francés, etc.).\n"
-            "REGLA DE FORMATO (CRÍTICA): NUNCA uses comillas dobles (\") dentro de tus respuestas. Usa SIEMPRE comillas simples (' '). Esto es vital para no romper el formato JSON."
+            "2. Sé un apoyo: Si el usuario se traba o te pregunta en español cómo se dice algo, explícale en español y dale la traducción exacta en el idioma que practican.\n"
+            "REGLA DE AUDIO (VITAL): Usa 'es' para español. Si respondes o traduces en el idioma extranjero, usa su CÓDIGO ISO EXACTO (ej. 'fr' para francés).\n"
+            "REGLA ANTI-INGLÉS (CRÍTICA): ESTÁ ESTRICTAMENTE PROHIBIDO usar frases en inglés (como 'The correct sentence would be:') si el usuario está platicando en otro idioma como francés o japonés. Explica en ESPAÑOL y traduce al IDIOMA OBJETIVO.\n"
+            "REGLA DE FORMATO: NUNCA uses comillas dobles (\") dentro de tus respuestas. Usa SIEMPRE comillas simples (' '). Esto es vital para el JSON."
         )
         fmt = (
             '{\n'
@@ -136,7 +134,6 @@ def generar_prompt_modo(nombre, carrera, modo):
         return f"{inst}\n\nFORMATO JSON OBLIGATORIO:\n{fmt}"
 
 async def generar_audio(texto, lang, ruta_salida):
-    # AQUÍ ES DONDE EDGE TTS ELIGE EL MICRÓFONO SEGÚN EL IDIOMA
     voz = VOCES_TTS.get(lang.lower(), VOZ_POR_DEFECTO)
     comunicador = edge_tts.Communicate(texto, voz)
     await comunicador.save(ruta_salida)
@@ -184,42 +181,36 @@ async def procesar_chat(nombre: str = Form(...), modo: str = Form(...), audio: U
             
         cliente_groq = Groq(api_key=GROQ_API_KEY)
 
-        # ==============================================================
-        # WHISPER INTELIGENTE: DETECTA MULETILLAS SOLO EN ORATORIA
-        # ==============================================================
+
         if "oratoria" in modo.lower():
             transcripcion = cliente_groq.audio.transcriptions.create(
                 file=("audio.webm", open(ruta_audio_usuario, "rb")), 
                 model="whisper-large-v3", 
-                prompt="ehhh, mmmmm, ahhh, este, bueno, osea, mhm, uh, um, well, you know, euh, alors...", # <-- AHORA ES MULTILINGÜE
+                prompt="ehhh, mmmmm, ahhh, este, bueno, osea, mhm, uh, um, well, you know, euh, alors...",
                 response_format="json"
             ).text
-        # ... [tu código donde Whisper transcribe el audio] ...
+
         else:
             transcripcion = cliente_groq.audio.transcriptions.create(
                 file=("audio.webm", open(ruta_audio_usuario, "rb")), 
                 model="whisper-large-v3", 
                 response_format="json"
             ).text
-        # ==============================================================
 
-        # ==============================================================
         # NUEVO: COMANDO SECRETO DE BORRADO DE DATOS
         # ==============================================================
         texto_limpio = transcripcion.lower().replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u").replace("!", "").replace(".", "").replace(",", "")
         
         if "cierrate sesamo" in texto_limpio or "cierra te sesamo" in texto_limpio:
-            # 1. Borrar el historial JSON (El cerebro de la conversación)
             archivo_memoria = obtener_ruta_memoria(nombre, modo)
             if os.path.exists(archivo_memoria):
                 os.remove(archivo_memoria)
                 
-            # 2. Borrar todos los audios guardados de este usuario en el servidor
             for f in glob.glob(f"{CARPETA_AUDIOS}/{nombre_limpio}_*.*"):
                 try: os.remove(f)
                 except: pass
                 
-            # 3. Crear una respuesta de voz robótica de confirmación
+
             msg_sistema = "Comando de seguridad reconocido. Todos tus datos y tu historial de conversación han sido eliminados del servidor. Hasta pronto."
             ruta_audio_sistema = f"{CARPETA_AUDIOS}/{nombre_limpio}_{timestamp}_sistema.mp3"
             await generar_audio(msg_sistema, "es", ruta_audio_sistema)
@@ -229,7 +220,7 @@ async def procesar_chat(nombre: str = Form(...), modo: str = Form(...), audio: U
                 "texto_ia": msg_sistema,
                 "audio_ia_url": f"/audios/{os.path.basename(ruta_audio_sistema)}",
                 "audio_usuario_url": f"/audios/{os.path.basename(ruta_audio_usuario)}",
-                "borrar_todo": True  # ¡Nuestra bandera secreta para avisarle al FrontEnd!
+                "borrar_todo": True 
             }
         # ==============================================================
 
@@ -260,13 +251,12 @@ async def procesar_chat(nombre: str = Form(...), modo: str = Form(...), audio: U
                 codigo = datos_json.get("codigo_idioma", "en")
                 
                 if p and p not in ["null", "None", ""]:
-                    # 🎧 AQUÍ SE PASAN EL MICRÓFONO JORGE Y LOS MOTORES NATIVOS
                     bloques.append({"lang": "es", "texto": "¡Excelente! El término es "})
-                    bloques.append({"lang": codigo, "texto": p}) # <- Motor nativo lee
+                    bloques.append({"lang": codigo, "texto": p}) 
                     bloques.append({"lang": "es", "texto": f", y se pronuncia {f}. Su significado es {s}. Además, toma en cuenta este contexto: {c}. Por ejemplo: {t}."})
                     
                     if ext:
-                        bloques.append({"lang": codigo, "texto": ext}) # <- Motor nativo lee el ejemplo
+                        bloques.append({"lang": codigo, "texto": ext}) 
                 else:
                     bloques.append({"lang": "es", "texto": "Tuve un pequeño cruce de cables. ¿Podrías repetirme el idioma?"})
             
