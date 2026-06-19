@@ -8,9 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <style>
-        /* ==========================================================================
-           RESET Y ESTILOS GLOBALES
-           ========================================================================== */
+
         body, html {
             margin: 0;
             padding: 0;
@@ -26,9 +24,7 @@
             position: relative;
         }
 
-        /* ==========================================================================
-           DECORACIÓN Y EFECTOS (BRILLOS Y FIGURAS) - TU TAMAÑO ORIGINAL
-           ========================================================================== */
+
         .deco-izq { 
             position: absolute; 
             top: -5%; 
@@ -111,9 +107,6 @@
             transform: scale(0.95); 
         }
 
-        /* ==========================================================================
-           COMPONENTES Y BOTONES GENERALES
-           ========================================================================== */
         .btn-iniciar { 
             background: linear-gradient(90deg, #000000 0%, #5424bb 100%); 
             border: 1px solid #c59dff; 
@@ -184,9 +177,6 @@
             text-shadow: 0 0 10px #c59dff; 
         }
 
-        /* ==========================================================================
-           PANTALLAS 1 Y 2 (BIENVENIDA Y LOGIN)
-           ========================================================================== */
         .logo-img-main { 
             width: 85vw; 
             max-width: 800px; 
@@ -266,9 +256,7 @@
             color: rgba(197, 157, 255, 0.15); 
         }
 
-        /* ==========================================================================
-           PANTALLA 3: SELECCIÓN DE MODOS
-           ========================================================================== */
+
         .modos-container { 
             display: flex; 
             width: 90%; 
@@ -355,9 +343,7 @@
             transform: rotate(180deg); 
         }
 
-        /* ==========================================================================
-           PANTALLA 5: CABINA DE PRÁCTICA Y CONTROLES DE AUDIO
-           ========================================================================== */
+
         .cabina-container { 
             width: 95%; 
             max-width: 1300px; 
@@ -418,7 +404,6 @@
             overscroll-behavior-y: contain; 
         }
         
-        /* Controles de Micrófono y Grabación */
         .mic-selector { 
             background: rgba(84, 36, 187, 0.2); 
             border: 1px solid #5424bb; 
@@ -483,7 +468,7 @@
             transition: height 0.05s ease; 
         }
 
-        /* Controles para escuchar/eliminar audio */
+
         .controles-preview { 
             display: none; 
             flex-direction: column; 
@@ -603,9 +588,7 @@
             background-color: #1a1a1a; 
         }
 
-        /* ==========================================================================
-           PANTALLA 4: PANEL ADMIN
-           ========================================================================== */
+
         .admin-header { 
             width: 90%; 
             max-width: 1100px; 
@@ -758,36 +741,31 @@
             border-radius: 10px; 
         }
 
-        /* ==========================================
-           CORRECCIÓN DE INTERFAZ PARA CELULARES
-           ========================================== */
         @media (max-width: 768px) {
-            /* --- INICIO DEL DESBLOQUEO DE PANTALLA --- */
+  
             body, html {
                 overflow-y: auto !important; 
                 overflow-x: hidden;
-                align-items: flex-start !important; /* MAGIA: Evita que el contenedor corte la parte superior */
+                align-items: flex-start !important;
             }
             
             .view-section {
                 height: auto !important;
                 min-height: 100vh;
-                padding-bottom: 80px; /* Más espacio abajo para la barra nativa del navegador */
+                padding-bottom: 80px; 
             }
 
-            /* Solo mandamos hacia arriba las pantallas largas que necesitan scroll */
             #view-cabina, #view-admin, #view-modos {
                 justify-content: flex-start !important;
-                padding-top: 50px !important; /* Un margen superior amplio para que el logo y botones respiren */
+                padding-top: 50px !important;
             }
 
-            /* Obligamos a que la Bienvenida y el Login se queden en el centro */
+            
             #view-welcome, #view-login {
                 justify-content: center !important;
                 padding-top: 0 !important;
             }
 
-            /* --- TU TAMAÑO ORIGINAL PARA CELULARES --- */
             .deco-izq { width: 120px; top: -2%; left: -5%; }
             .deco-der { width: 100px; top: -2%; right: -5%; }
             
@@ -816,9 +794,7 @@
             .admin-controls { flex-direction: column; gap: 15px; }
             #admin-student-select { width: 100%; }
 
-            /* ==========================================
-               ESTA ES LA MAGIA QUE ARREGLA EL CHAT Y EL MICRÓFONO EN MÓVIL
-               ========================================== */
+           
             .cabina-col, .cabina-panel {
                 flex: none !important; 
             }
@@ -977,16 +953,10 @@
     </div>
 
     <script>
-        // ==========================================
-        // VARIABLES GLOBALES
-        // ==========================================
         let nombreUsuario = "";
         let carreraUsuario = "";
         let modoActual = "";
 
-        // ==========================================
-        // NAVEGACIÓN BÁSICA Y NUEVO BOTÓN VOLVER
-        // ==========================================
         function mostrarLogin() { 
             document.getElementById('view-welcome').classList.add('hidden'); 
             setTimeout(() => { document.getElementById('view-login').classList.remove('hidden'); }, 100); 
